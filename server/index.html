@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat app</title>
+    <style>
+        .up {
+            color: green;
+        }
+        .down {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>App chat cuc nhanh</h1>
+    <ul id="messages"></ul>
+    <form id="chat-form">
+        <input type="text" id="chat-mes">
+        <button type="submit" id="send-chat">Gửi</button>
+    </form>
+    <span id="bit-price"></span>
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io()
+    const chatFrom = document.querySelector('#chat-form')
+    const chatMes = document.querySelector('#chat-mes')
+    const name = prompt('What is your name?')
+
+    chatFrom.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = chatMes.value;
+        socket.emit('on-chat', {
+            name: name,
+            message: message
+        })
+        chatMes.value = ''
+    })
+
+    const messages = document.querySelector('#messages');
+    socket.on('user-chat', (data) => {
+        const chatItem = document.createElement('li');
+        chatItem.textContent = `[${data.name}]: ${data.message}`
+
+        messages.appendChild(chatItem)
+    })
+    const priceSpan = document.querySelector('#bit-price')
+    let lastPrice = 0
+    socket.on('bitcoin-price', (data) => {
+
+        if (lastPrice < data.price) {
+            priceSpan.className = 'up'
+        } else {
+            priceSpan.className = 'down'
+        }
+        lastPrice = data.price
+        priceSpan.textContent = `${data.price} USD`
+    })
+</script>
+</html>
